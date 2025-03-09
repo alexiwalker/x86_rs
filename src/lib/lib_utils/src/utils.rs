@@ -46,11 +46,8 @@ pub fn format_hex(f: &mut fmt::Formatter<'_>, data: &[u8]) -> fmt::Result {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
     }
 }
