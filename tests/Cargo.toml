@@ -1,0 +1,12 @@
+[package]
+name = "tests"
+version = "0.1.0"
+edition = "2024"
+
+
+[lib]
+path = "src/tests.rs"
+
+[dependencies]
+lib = {workspace = true}
+lib_types = {workspace = true}

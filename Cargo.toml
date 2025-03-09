@@ -1,0 +1,29 @@
+[package]
+name = "x86_rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+lib = {workspace = true}
+
+[workspace]
+members = [
+    ".",
+
+    # inner_libs
+    # all inner crates are prefixed lib_<x> so that they are sorted above /src and /target in my ide
+    # and for literally no other reason
+    "src/lib",
+    "src/lib/lib_types",
+    "src/lib/lib_utils",
+    "src/lib/lib_intrinsics",
+
+
+    "./tests"
+]
+
+[workspace.dependencies]
+lib = {path = "src/lib", version = "0.1.0"}
+lib_types =  {path = "src/lib/lib_types", version = "0.1.0" }
+lib_utils = {path = "src/lib/lib_utils", version = "0.1.0"}
+lib_instrinsics = {path = "src/lib/lib_intrinsics", version = "0.1.0"}

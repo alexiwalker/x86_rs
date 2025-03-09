@@ -1,0 +1,10 @@
+[package]
+name = "lib_types"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/types.rs"
+
+[dependencies]
+lib_utils = {workspace = true}
