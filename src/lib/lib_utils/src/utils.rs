@@ -1,7 +1,6 @@
 use std::fmt;
 
 pub fn truncate_hex(f: &mut fmt::Formatter<'_>, data: &[u8]) -> fmt::Result {
-
     if data.len() > (64 * 64) {
         writeln!(f, "[")?;
         writeln!(f, "\t < {} bytes >", data.len())?;
@@ -42,12 +41,4 @@ pub fn format_hex(f: &mut fmt::Formatter<'_>, data: &[u8]) -> fmt::Result {
             writeln!(f)?;
         }
         write!(f, "]")
-}
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn it_works() {
-    }
 }

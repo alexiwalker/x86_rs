@@ -58,3 +58,28 @@ mod machine {
         // dbg!(machine);
     }
 }
+
+#[cfg(test)]
+mod intrinsics {
+
+    fn test_intrinsic(machine: &mut X86Machine) -> () {
+        println!("test_intrinsic. machine has bytes: {}", machine.assigned_memory.num_bytes());
+    }
+
+    use lib::functions::Intrinsic;
+    use lib::prelude::{ByteUnits, X86Machine};
+
+    #[test]
+    fn can_convert_function() {
+
+        let mut machine = X86Machine::builder()
+            .memory(ByteUnits::KibiBytes(512))
+            .build_with_defaults();
+
+        let intrinsic = Intrinsic::from_ptr(test_intrinsic);
+
+        test_intrinsic(&mut machine);
+
+    }
+
+}

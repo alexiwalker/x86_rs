@@ -2,6 +2,7 @@ use lib_types::error::{VmBuildError, VmRuntimeError};
 use lib_types::memory::ByteUnits;
 use std::fmt;
 use std::ops::Deref;
+use crate::functions::{InterruptVector, SyscallVector, SystemFunction};
 
 #[allow(unused)]
 #[derive(Debug, Clone, Copy)]
@@ -19,10 +20,13 @@ pub(crate) struct SegmentPointers {
 }
 
 #[derive(Clone)]
-pub(crate) struct Registers(pub(crate) [u8; 64]);
+// equivalent to 16 x 64 bit registers
+// created as u8 here to make addressing specific segments and aliases easier
+pub(crate) struct Registers<const N: usize>(pub(crate) [u8; N]);
 
-impl Deref for Registers {
-    type Target = [u8; 64];
+
+impl<const N: usize> Deref for Registers<N> {
+    type Target = [u8; N];
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -39,7 +43,7 @@ impl Deref for ContiguousMemory {
     }
 }
 
-impl fmt::Debug for Registers {
+impl<const N: usize> fmt::Debug for Registers<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         lib_utils::truncate_hex(f, &self.0)
     }
@@ -51,7 +55,7 @@ impl fmt::Debug for ContiguousMemory {
     }
 }
 
-impl fmt::Display for Registers {
+impl<const N: usize> fmt::Display for Registers<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         lib_utils::truncate_hex(f, &self.0)
     }
@@ -63,19 +67,35 @@ impl fmt::Display for ContiguousMemory {
     }
 }
 
+pub(crate) struct Fpu {
+    pub(crate) registers:  Registers<80> /* 8 x 80 bit registers, represented by u8s*/
+}
+
 /// Represents a virtual x86_64 lib
 ///
-/// Can b   e constructed with variable amounts of memory. All memory is allocated contiguously at construction of the machine
+/// Can be constructed with variable amounts of memory. All memory is allocated contiguously at construction of the machine
+///
+/// https://cs.lmu.edu/~ray/notes/x86overview/ for reference on registers, address space ETC
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct X86Machine {
-    pub(crate) registers: Registers,
+    /// General purpose registers
+    pub(crate) gp_registers: Registers<{ (16*64) / 8 }>, /* 16 x 64 registers, represented by u8s */
+    pub(crate) mmx_registers: Registers<{ (8*64) / 8 }>, /*  8 x 64 registers, represented by u8s */
+    pub(crate) xmm_registers: Registers<{ (16*128) / 8 }>, /* 16 x 128 registers, represented by u8s */
+    pub(crate) mxcsr_register: Registers<{ 32 / 8 }>, /* 1 x 32 register, represented by u8s */
+
+    pub(crate) bounds_registers: Registers<{ (4 * 128) / 8 }>, /* 4 x 128 registers, represented by u8s. Aliases: upper = BNDCFGU, lower = BNDSTATUS */
+
+    pub(crate) ymm_registers: Registers<{ (16*256) / 8 }>, /* 16 x 256 registers, represented by u8s */
 
     pub(crate) segment_pointers: SegmentPointers,
 
-    /// Bitfield flag
+    /// Bitfield flag, aka RFLAGS, EFLAGS
     pub flags: u64,
 
+
+    /// AKA RIP
     pub instruction_counter: u64,
 
     pub stack_pointer: u64,
@@ -155,7 +175,12 @@ impl MachineOptions {
 
     pub fn build(self) -> X86Machine {
         X86Machine {
-            registers: Registers([0; 64]),
+            gp_registers: Registers([0; 128]),
+            mmx_registers: Registers([0; 64]),
+            xmm_registers: Registers([0; 256]),
+            mxcsr_register: Registers([0; 4]),
+            bounds_registers: Registers([0; 64]),
+            ymm_registers: Registers([0; 512]),
             segment_pointers: SegmentPointers {
                 stack: 0,
                 code: 0,
@@ -297,65 +322,4 @@ fn empty_interrupts() -> InterruptVector {
 }
 
 
-pub type IntrinsicPtr = fn(&mut X86Machine) -> ();
-
-
-
-/// An intrinsic is a function that runs on the machine itself - it is used to implement
-/// system calls and interrupts at the library level. There
-#[derive(Debug, Copy, Clone)]
-pub struct Intrinsic(pub fn(&mut X86Machine) -> ());
-
-impl Intrinsic {
-
-    #[inline(always)]
-    pub fn from_ptr(f: fn(&mut X86Machine)) -> Intrinsic {
-        Intrinsic(f)
-    }
-}
-
-impl Deref for Intrinsic {
-    type Target = fn(&mut X86Machine) -> ();
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-/// Allows interrupts and syscalls to be implemented either in loaded binary (Pointer) or
-/// at machine compile time by intrinsics
-///
-#[derive(Debug, Default, Copy, Clone)]
-pub enum SystemFunction {
-    /// No such function exists. Will cause a vm panic if called
-    #[default]
-    Unimplemented,
-
-    /// Compile-time function
-    IntrinsicFunction(Intrinsic),
-
-    /// Function loaded from binary and placed into memory
-    Pointer(u64),
-}
-
-impl SystemFunction {
-    pub fn call(&self, machine: &mut X86Machine) -> () {
-        match self {
-            SystemFunction::Unimplemented => {}
-            SystemFunction::IntrinsicFunction(ptr) => {
-                (*ptr)(machine);
-            }
-            SystemFunction::Pointer(ptr) => {
-                machine.set_instruction_counter(*ptr)
-                // machine.resume()
-            }
-        }
-    }
-}
-
-
-#[derive(Debug, Clone, Copy)]
-pub struct InterruptVector([SystemFunction; 255]);
-
-#[derive(Debug, Clone, Copy)]
-pub struct SyscallVector([SystemFunction; 1024]); // 1024 should be enough
+// 1024 should be enough

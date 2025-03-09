@@ -11,7 +11,12 @@
 
 // local reexports to make the names easier
 pub(crate) mod types {
-    pub use lib::x86::{InterruptVector, Intrinsic, SyscallVector, SystemFunction, X86Machine, IntrinsicPtr};
+    pub use lib::functions::InterruptVector;
+    pub use lib::functions::Intrinsic;
+    pub use lib::functions::IntrinsicPtr;
+    pub use lib::functions::SyscallVector;
+    pub use lib::functions::SystemFunction;
+    pub use lib::x86::X86Machine;
 }
 
 
@@ -21,28 +26,3 @@ pub(crate) mod private {
 
 
 
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-    fn test_intrinsic(machine: &mut types::X86Machine) -> () {
-        println!("test_intrinsic. machine has bytes: {}", machine.assigned_memory.num_bytes());
-    }
-
-    use lib::prelude::{ByteUnits, Intrinsic};
-
-    #[test]
-    fn can_convert_function() {
-
-        let mut machine = types::X86Machine::builder()
-            .memory(ByteUnits::KibiBytes(512))
-            .build_with_defaults();
-
-        let intrinsic = Intrinsic::from_ptr(test_intrinsic);
-
-        test_intrinsic(&mut machine);
-
-    }
-
-}
