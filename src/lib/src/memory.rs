@@ -55,19 +55,16 @@ impl fmt::Display for ContiguousMemory {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub(crate) struct Fpu {
-    pub(crate) registers:  Registers<80> /* 8 x 80 bit registers, represented by u8s*/
+    pub(crate) registers:  Registers<80>, /* 8 x 80 bit registers, represented by u8s*/
+    pub(crate) control_register:  Registers<{ 16/8 }>, /* 1x16 bit registers, represented by u8s*/
+    pub(crate) status_register:  Registers<{ 16/8 }>, /* 1x16 bit registers, represented by u8s*/
+    pub(crate) tag_register:  Registers<{ 16/8 }>, /* 1x16 bit registers, represented by u8s*/
+    pub(crate) opcopde_register:  Registers<{ 16/8 }>, /* 1x11 bit registers, rounded to 16 for convenience, represented by u8s*/
+    pub(crate) fpu_instruction_pointer:  Registers<{ 64/8 }>, /* 1x64 bit registers, represented by u8s*/
+    pub(crate) fpu_data_pointer:  Registers<{ 64/8 }>, /* 1x11 bit registers, represented by u8s*/
 }
-
-impl Default for Fpu {
-    fn default() -> Self {
-        Self {
-            registers: Default::default(),
-        }
-    }
-}
-
 impl ContiguousMemory {
     pub fn with_size(size: &ByteUnits) -> Self {
         Self(vec![0; size.num_bytes() as usize])
