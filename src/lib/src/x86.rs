@@ -2,7 +2,7 @@ use lib_types::error::{VmBuildError, VmRuntimeError};
 use lib_types::memory::ByteUnits;
 use crate::functions::{InterruptVector, SyscallVector, SystemFunction};
 use crate::memory::{ContiguousMemory, Fpu};
-use crate::registers::{RegisterWidth, Registers};
+use crate::registers::{Registers};
 
 /// Represents a virtual x86_64 lib
 ///

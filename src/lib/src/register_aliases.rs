@@ -1,4 +1,5 @@
-use crate::flags::RFlags::Parity;
+use std::ops::Range;
+use crate::registers::RegisterWidth;
 
 pub enum RegisterAlias {
     RAX,
@@ -53,6 +54,13 @@ pub enum RegisterAlias {
 pub struct Alias {
     pub offset: u8,
     pub width: u8,
+}
+
+impl Alias {
+    pub fn range(&self) -> Range<usize> {
+        let i = ((self.offset*self.width)/8) as usize;
+        i .. i+((self.width/8) as usize)
+    }
 }
 
 impl RegisterAlias {

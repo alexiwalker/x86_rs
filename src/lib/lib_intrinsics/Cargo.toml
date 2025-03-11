@@ -8,3 +8,7 @@ path="./src/instrinsics.rs"
 
 [dependencies]
 lib = {workspace = true, version = "0.1.0"}
+
+[features]
+default = []
+safety_checks=[]

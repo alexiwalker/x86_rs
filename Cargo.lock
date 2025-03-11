@@ -44,9 +44,6 @@ dependencies = [
 [[package]]
 name = "lib_types"
 version = "0.1.0"
-dependencies = [
- "lib_utils",
-]
 
 [[package]]
 name = "lib_utils"

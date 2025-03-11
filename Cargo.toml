@@ -36,3 +36,8 @@ opt-level = 3
 codegen-units = 1
 lto = "fat"
 panic = "abort"
+
+
+[features]
+default=[]
+safety_checks = ["lib/safety_checks"]

@@ -17,9 +17,14 @@ pub enum VmRuntimeError {
     InvalidAlias {offset: u8, width: u8 },
 
     RegisterAlasOverrun {offset: u8, width: u8, alignment: u8 }
-
-
 }
+
+
+#[cfg(feature = "safety_checks")]
+pub type SafetyResult<T> = Result<T,VmRuntimeError>;
+
+#[cfg(not(feature = "safety_checks"))]
+pub type SafetyResult<T> = T;
 
 #[derive(Debug, Clone, Copy,)]
 pub struct VmBuildError {

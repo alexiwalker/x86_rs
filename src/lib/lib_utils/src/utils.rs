@@ -74,7 +74,6 @@ pub fn format_hex(f: &mut fmt::Formatter<'_>, data: &[u8]) -> fmt::Result {
 }
 pub fn dump_hex(data: &[u8]) -> String {
     let mut f = String::new();
-    println!("here!");
     writeln!(f, "[").expect("shouldnt fail writing");
     let mut padded_data = data.to_vec();
     while padded_data.len() % 64 != 0 {
@@ -97,8 +96,7 @@ pub fn dump_hex_unpadded(data: &[u8]) -> String {
     let mut f = String::new();
     println!("here!");
     writeln!(f, "[").expect("shouldnt fail writing");
-    let mut padded_data = data.to_vec();
-    for chunk in padded_data.chunks(64) {
+    for chunk in data.chunks(64) {
         write!(f, "\t").expect("shouldnt fail writing");
         for (i, byte) in chunk.iter().enumerate() {
             if i > 0 {

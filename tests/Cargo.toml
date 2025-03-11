@@ -17,3 +17,8 @@ lib_types = {workspace = true}
 
 # 3rd party dependencies for testing
 rand = "0.9.0"
+
+
+[features]
+default = []
+safety_checks = ["lib/safety_checks","lib_types/safety_checks"]

@@ -13,4 +13,5 @@ path = "src/machine.rs"
 
 
 [features]
-safety_checks = []
+default = []
+safety_checks = ["lib_types/safety_checks", "lib_utils/safety_checks"]

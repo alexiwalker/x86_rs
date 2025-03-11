@@ -269,22 +269,27 @@ mod registers {
 
         register.write_u8(ALIAS_8_BIT, 255).unwrap();
 
-        let s = register.dump_hex();
-
-        println!("{s}");
-
         let v = register.read_u8(ALIAS_8_BIT);
 
-        assert!(v.is_ok());
+        #[cfg(feature = "safety_checks")]
+        {
+            assert!(v.is_ok());
+            assert_eq!(v.unwrap(), 255);
+        }
 
-        assert_eq!(v.unwrap(), 255);
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            assert_eq!(v, 255);
+        }
 
     }
 
     #[test]
     fn test_8x16_registers(){
         /* 8 x 16 bit registers*/
-        let mut register = Registers::<{( 8 * 16 ) / 8 }>::new(RegisterWidth::Fixed(16));
+        let mut register = Registers::<{( 8 * 16 ) / 8 }>::new(
+            RegisterWidth::Fixed(16)
+        );
         let s = register.dump_hex();
 
         println!("{s}");
@@ -298,6 +303,52 @@ mod registers {
         let s_after = register.dump_hex();
 
         println!("{s_after}");
+
+        let read_first = register.read_u16(ALIAS_16_BIT_1);
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            let bytes = read_first.to_le_bytes().to_vec();
+            dbg!(&bytes);
+            assert_eq!(read_first, 65535);
+        }
+
+        #[cfg(feature = "safety_checks")] {
+            assert!(read_first.is_ok());
+            let read_first = read_first.unwrap();
+            assert_eq!(read_first, 65535);
+
+        }
+
+
+    }
+
+    #[test]
+    fn test_8x16_registers_with_low_numbers(){
+        /* 8 x 16 bit registers*/
+        let mut register = Registers::<{( 8 * 16 ) / 8 }>::new(
+            RegisterWidth::Fixed(16)
+        );
+
+        const TEST_NUM: u16 = 513u16;
+
+        register.write_u16( ALIAS_16_BIT_1, TEST_NUM ).unwrap();
+
+
+        let read_first = register.read_u16(ALIAS_16_BIT_1);
+
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            let bytes = read_first.to_le_bytes().to_vec();
+            assert_eq!(read_first, TEST_NUM);
+        }
+
+        #[cfg(feature = "safety_checks")] {
+            assert!(read_first.is_ok());
+            let read_first = read_first.unwrap();
+            assert_eq!(read_first, TEST_NUM);
+
+        }
+
 
     }
 }

@@ -7,4 +7,7 @@ edition = "2024"
 path = "src/types.rs"
 
 [dependencies]
-lib_utils = {workspace = true}
+
+[features]
+default = []
+safety_checks = []

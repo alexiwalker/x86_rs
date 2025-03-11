@@ -1,7 +1,7 @@
 use std::ops::Deref;
 use std::fmt;
 use std::io::Read;
-use lib_types::error::VmRuntimeError;
+use lib_types::error::{SafetyResult, VmRuntimeError};
 use crate::register_aliases::Alias;
 
 #[derive(Clone, Debug)]
@@ -34,7 +34,7 @@ impl<const N: usize>  Registers<N> {
 
         #[cfg(feature = "safety_checks")]{
             let width = alias.width;
-            if offset % 8 != 0 {
+            if width % 8 != 0 {
                 return Err(VmRuntimeError::InvalidAlias{offset, width})
             }
         }
@@ -53,7 +53,7 @@ impl<const N: usize>  Registers<N> {
 
         #[cfg(feature = "safety_checks")]{
             let width = alias.width;
-            if offset % 8 != 0 {
+            if width % 8 != 0 {
                 return Err(VmRuntimeError::InvalidAlias{offset, width})
             }
 
@@ -72,9 +72,7 @@ impl<const N: usize>  Registers<N> {
         }
 
         let mut mem: &mut [u8] = self.0.as_mut_slice();
-        let i = ((offset*alias.width)/8) as usize;
-        mem[i..i+2].copy_from_slice(&val.to_le_bytes());
-
+        mem[alias.range()].copy_from_slice(&val.to_le_bytes());
         Ok(())
 
     }
@@ -83,13 +81,65 @@ impl<const N: usize>  Registers<N> {
         Registers([0; N], width)
     }
 
-    pub fn read_u8(&self, alias:Alias) -> Result<u8,VmRuntimeError> {
+    pub fn read_u8(&self, alias:Alias) -> SafetyResult<u8> {
         let offset = alias.offset;
+        let memory = self.0.as_slice();
 
         #[cfg(feature = "safety_checks")]
         {
             let width = alias.width;
-            if offset % 8 != 0 {
+            if width % 8 != 0 {
+                return Err(VmRuntimeError::InvalidAlias{offset, width})
+            }
+
+            let cannonical_width = &self.1;
+
+            match cannonical_width {
+                RegisterWidth::Fixed(w) => {
+                    if *w < 8 {
+                        return Err(VmRuntimeError::RegisterAlasOverrun {offset: alias.offset, width: alias.width, alignment: *w })
+                    }
+                }
+                RegisterWidth::Variable => {
+                    // nothing to check here
+                }
+            }
+
+            let v = memory.get(offset as usize);
+
+            match v {
+                None => {
+                    return {
+                        match self.1 {
+                            RegisterWidth::Fixed(w) => {
+                                Err(VmRuntimeError::RegisterAlasOverrun {offset: alias.offset, width: alias.width, alignment: w })
+                            }
+                            RegisterWidth::Variable => {
+                                Err(VmRuntimeError::RegisterAlasOverrun {offset: alias.offset, width: alias.width, alignment: 8 })
+                            }
+                        }
+                    };
+                }
+                Some(v) => {
+                    Ok(*v)
+                }
+            }
+        }
+
+        #[cfg(not(feature = "safety_checks"))]
+        memory[offset as usize]
+
+
+    }
+
+
+    pub fn read_u16(&self, alias:Alias) -> SafetyResult<u16> {
+        let memory = self.0.as_slice();
+        let offset = alias.offset;
+        #[cfg(feature = "safety_checks")]
+        {
+            let width = alias.width;
+            if width % 8 != 0 {
                 return Err(VmRuntimeError::InvalidAlias{offset, width})
             }
 
@@ -105,20 +155,15 @@ impl<const N: usize>  Registers<N> {
                     // nothing to check here
                 }
             }
-        };
 
-        let memory = self.0.as_slice();
-
-        #[cfg(feature = "safety_checks")]
-        {
-            let v = memory.get(offset as usize);
+            let v = &memory.get(alias.range());
 
             match v {
                 None => {
                     return {
                         match self.1 {
                             RegisterWidth::Fixed(w) => {
-                                Err(VmRuntimeError::RegisterAlasOverrun {offset: alias.offset, width: alias.width, alignment: *w })
+                                Err(VmRuntimeError::RegisterAlasOverrun {offset: alias.offset, width: alias.width, alignment: w })
                             }
                             RegisterWidth::Variable => {
                                 Err(VmRuntimeError::RegisterAlasOverrun {offset: alias.offset, width: alias.width, alignment: 8 })
@@ -127,15 +172,24 @@ impl<const N: usize>  Registers<N> {
                     };
                 }
                 Some(v) => {
-                    Ok(*v)
+                    let derefed = *v;
+
+                    if derefed.len() != 2 {
+                        return Err(VmRuntimeError::RegisterAlasOverrun {offset: alias.offset, width: alias.width, alignment: 8 })
+                    }
+
+                    let num = u16::from_le_bytes([derefed[0], derefed[1]]);
+                    Ok(num)
                 }
             }
         }
 
         #[cfg(not(feature = "safety_checks"))]
         {
-            Ok(memory[offset as usize])
+            let bytes: &[u8] = &memory[alias.range()];
+            u16::from_le_bytes(bytes.try_into().unwrap())
         }
+
 
     }
 
