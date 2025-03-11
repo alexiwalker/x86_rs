@@ -10,3 +10,7 @@ lib_utils = {workspace = true}
 
 [lib]
 path = "src/machine.rs"
+
+
+[features]
+safety_checks = []

@@ -13,6 +13,12 @@ pub enum VmRuntimeError {
 
     SyscallNotFound { code: u32 },
 
+    // Invalid aliases should only occur during development / testing, don't include in default builds
+    InvalidAlias {offset: u8, width: u8 },
+
+    RegisterAlasOverrun {offset: u8, width: u8, alignment: u8 }
+
+
 }
 
 #[derive(Debug, Clone, Copy,)]

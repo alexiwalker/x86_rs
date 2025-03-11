@@ -4,7 +4,8 @@ pub mod flags;
 pub mod functions;
 pub mod register_aliases;
 pub mod memory;
-mod hardware;
+pub mod hardware;
+pub mod registers;
 
 pub mod prelude {
     pub use crate::x86::*;

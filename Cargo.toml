@@ -27,3 +27,12 @@ lib = {path = "src/lib", version = "0.1.0"}
 lib_types =  {path = "src/lib/lib_types", version = "0.1.0" }
 lib_utils = {path = "src/lib/lib_utils", version = "0.1.0"}
 lib_instrinsics = {path = "src/lib/lib_intrinsics", version = "0.1.0"}
+
+
+
+#profile for tests has optimisations to make sure the thing actually runs decently quickly
+[profile.test]
+opt-level = 3
+codegen-units = 1
+lto = "fat"
+panic = "abort"

@@ -50,9 +50,9 @@ pub enum RegisterAlias {
     R14D,
 }
 
-pub(crate) struct Alias {
-    offset: u8,
-    width: u8,
+pub struct Alias {
+    pub offset: u8,
+    pub width: u8,
 }
 
 impl RegisterAlias {

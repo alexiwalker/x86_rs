@@ -2,24 +2,7 @@ use lib_types::error::VmRuntimeError;
 use lib_types::memory::ByteUnits;
 use std::fmt;
 use std::ops::Deref;
-
-#[derive(Clone)]
-// equivalent to 16 x 64 bit registers
-// created as u8 here to make addressing specific segments and aliases easier
-pub(crate) struct Registers<const N: usize>(pub(crate) [u8; N]);
-
-impl<const N: usize> Default for Registers<N> {
-    fn default() -> Self {
-        Registers([0; N])
-    }
-}
-
-impl<const N: usize> Deref for Registers<N> {
-    type Target = [u8; N];
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+use crate::registers::Registers;
 
 #[derive(Clone)]
 pub struct ContiguousMemory(Vec<u8>);
@@ -32,19 +15,7 @@ impl Deref for ContiguousMemory {
     }
 }
 
-impl<const N: usize> fmt::Debug for Registers<N> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        lib_utils::format_truncated_hex(f, &self.0)
-    }
-}
-
 impl fmt::Debug for ContiguousMemory {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        lib_utils::format_truncated_hex(f, &self.0)
-    }
-}
-
-impl<const N: usize> fmt::Display for Registers<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         lib_utils::format_truncated_hex(f, &self.0)
     }
@@ -77,12 +48,7 @@ impl ContiguousMemory {
         let len = data.len();
         let allocated_len = self.0.len();
 
-        dbg!(&allocated_len);
-
         let total = addr + len;
-
-        dbg!(&total);
-
         if total > allocated_len {
             return Err(VmRuntimeError::OutOfBoundsError {
                 address: (addr + len) as u64,
@@ -95,8 +61,6 @@ impl ContiguousMemory {
             .collect();
 
         let new_len = self.0.len();
-
-        dbg!(&new_len);
 
         if new_len > allocated_len {
             println!("second");
