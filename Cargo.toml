@@ -32,8 +32,6 @@ lib_instrinsics = { path = "src/lib/lib_intrinsics", version = "0.1.0" }
 opt-level = 3
 codegen-units = 1
 lto = "fat"
-panic = "abort"
-
 
 [features]
 default = []

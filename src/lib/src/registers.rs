@@ -30,6 +30,13 @@ impl<const N: usize> Registers<N> {
         let start = width * offset;
         let end = start + width;
 
+        if alias.width < 8 {
+            return Err(VmRuntimeError::InvalidAlias {
+                offset,
+                width,
+            });
+        }
+
         if (end / 8) as usize > self.0.len() {
             return Err(VmRuntimeError::RegisterAliasOverrun {
                 offset,
@@ -71,7 +78,7 @@ impl<const N: usize> Registers<N> {
         }
     }
 
-    pub fn write_u8(&mut self, alias: Alias, val: u8) -> Result<(), VmRuntimeError> {
+    pub fn write_u8(&mut self, alias: Alias, val: u8) -> SafetyResult<()> {
         let offset = alias.offset;
 
         #[cfg(feature = "safety_checks")]
@@ -80,20 +87,32 @@ impl<const N: usize> Registers<N> {
             if width % 8 != 0 {
                 return Err(VmRuntimeError::InvalidAlias { offset, width });
             }
+            
+            if alias.offset as usize > self.0.len() {
+                return Err(VmRuntimeError::RegisterAliasOverrun {  offset, width, alignment: alias.offset });
+            }
         }
 
         let i = offset as usize;
         let mem = &mut self.0;
         mem[i] = val;
 
-        Ok(())
+
+        #[cfg(feature = "safety_checks")]
+        {
+            Ok(())
+        }
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            ()
+        }
     }
 
     pub fn write_u16(
         &mut self,
         alias: Alias,
         val: RegisterAliasingWidth,
-    ) -> Result<(), VmRuntimeError> {
+    ) -> SafetyResult<()> {
         #[cfg(feature = "safety_checks")]
         {
             self.safety_check(&alias)?
@@ -101,10 +120,18 @@ impl<const N: usize> Registers<N> {
 
         let mem: &mut [u8] = self.0.as_mut_slice();
         mem[alias.range()].copy_from_slice(&val.to_le_bytes());
-        Ok(())
+
+        #[cfg(feature = "safety_checks")]
+        {
+            Ok(())
+        }
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            ()
+        }
     }
 
-    pub fn write_u32(&mut self, alias: Alias, val: u32) -> Result<(), VmRuntimeError> {
+    pub fn write_u32(&mut self, alias: Alias, val: u32) -> SafetyResult<()> {
         #[cfg(feature = "safety_checks")]
         {
             self.safety_check(&alias)?
@@ -112,7 +139,34 @@ impl<const N: usize> Registers<N> {
 
         let mem: &mut [u8] = self.0.as_mut_slice();
         mem[alias.range()].copy_from_slice(&val.to_le_bytes());
-        Ok(())
+
+        #[cfg(feature = "safety_checks")]
+        {
+            Ok(())
+        }
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            ()
+        }
+    }
+
+    pub fn write_u64(&mut self, alias: Alias, val: u64) -> SafetyResult<()>{
+        #[cfg(feature = "safety_checks")]
+        {
+            self.safety_check(&alias)?
+        }
+
+        let mem: &mut [u8] = self.0.as_mut_slice();
+        mem[alias.range()].copy_from_slice(&val.to_le_bytes());
+
+        #[cfg(feature = "safety_checks")]
+        {
+            Ok(())
+        }
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            ()
+        }
     }
 
     pub fn new(width: RegisterWidth) -> Self {

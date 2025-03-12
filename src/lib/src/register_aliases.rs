@@ -50,10 +50,10 @@ enum RegisterAlias {
     R13D,
     R14D,
 }
-
+#[derive(Debug, Clone)]
 pub struct Alias {
-    pub offset: u16,
     pub width: u16,
+    pub offset: u16,
 }
 
 impl Alias {
