@@ -1,8 +1,8 @@
+use crate::registers::Registers;
 use lib_types::error::VmRuntimeError;
 use lib_types::memory::ByteUnits;
 use std::fmt;
 use std::ops::Deref;
-use crate::registers::Registers;
 
 #[derive(Clone)]
 pub struct ContiguousMemory(Vec<u8>);

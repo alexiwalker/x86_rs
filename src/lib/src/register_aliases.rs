@@ -1,6 +1,5 @@
-use std::ops::Range;
 use crate::registers::RegisterWidth;
-
+use std::ops::Range;
 
 #[allow(unused, clippy::upper_case_acronyms)]
 enum RegisterAlias {
@@ -60,13 +59,12 @@ pub struct Alias {
 
 impl Alias {
     pub fn range(&self) -> Range<usize> {
-        let i = ((self.offset*self.width)/8) as usize;
-        i .. i+((self.width/8) as usize)
+        let i = ((self.offset * self.width) / 8) as usize;
+        i..i + ((self.width / 8) as usize)
     }
 }
 
 impl RegisterAlias {
-
     // pub fn describe(&self) -> &'static Alias {
     //     //  const a: Alias = Alias {
     //     //      offset:0,
@@ -110,5 +108,4 @@ impl RegisterAlias {
     //     //     RegisterAlias::DIL => {}
     //     // }
     // }
-
 }

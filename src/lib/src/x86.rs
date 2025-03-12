@@ -1,8 +1,8 @@
-use lib_types::error::{VmBuildError, VmRuntimeError};
-use lib_types::memory::ByteUnits;
 use crate::functions::{InterruptVector, SyscallVector, SystemFunction};
 use crate::memory::{ContiguousMemory, Fpu};
-use crate::registers::{Registers};
+use crate::registers::Registers;
+use lib_types::error::{VmBuildError, VmRuntimeError};
+use lib_types::memory::ByteUnits;
 
 /// Represents a virtual x86_64 lib
 ///
@@ -13,11 +13,11 @@ use crate::registers::{Registers};
 #[derive(Debug, Clone)]
 pub struct X86Machine {
     /// General purpose registers
-    pub(crate) segment_pointers: Registers<{ (8*64) / 8 }>, /* 6 x 64 registers,  represented by u8s. 6 are specified, 2 extras added for padding to a pow2 */
-    pub(crate) mmx_registers: Registers<{ (8*64) / 8 }>, /*  8 x 64 registers, represented by u8s */
-    pub(crate) gp_registers: Registers<{ (16*64) / 8 }>, /* 16 x 64 registers, represented by u8s */
-    pub(crate) xmm_registers: Registers<{ (16*128) / 8 }>, /* 16 x 128 registers, represented by u8s */
-    pub(crate) ymm_registers: Registers<{ (16*256) / 8 }>, /* 16 x 256 registers, represented by u8s */
+    pub(crate) segment_pointers: Registers<{ (8 * 64) / 8 }>, /* 6 x 64 registers,  represented by u8s. 6 are specified, 2 extras added for padding to a pow2 */
+    pub(crate) mmx_registers: Registers<{ (8 * 64) / 8 }>, /*  8 x 64 registers, represented by u8s */
+    pub(crate) gp_registers: Registers<{ (16 * 64) / 8 }>, /* 16 x 64 registers, represented by u8s */
+    pub(crate) xmm_registers: Registers<{ (16 * 128) / 8 }>, /* 16 x 128 registers, represented by u8s */
+    pub(crate) ymm_registers: Registers<{ (16 * 256) / 8 }>, /* 16 x 256 registers, represented by u8s */
     pub(crate) bounds_registers: Registers<{ (4 * 128) / 8 }>, /* 4 x 128 registers, represented by u8s. Aliases: upper = BNDCFGU, lower = BNDSTATUS */
     pub(crate) mxcsr_register: Registers<{ 32 / 8 }>, /* 1 x 32 register, represented by u8s */
 
@@ -120,7 +120,6 @@ impl MachineOptions {
     }
 }
 
-
 #[derive(Default)]
 pub struct MachineBuilder {
     pub memory: Option<ByteUnits>,
@@ -129,7 +128,6 @@ pub struct MachineBuilder {
 }
 
 impl MachineBuilder {
-
     pub fn new() -> MachineBuilder {
         MachineBuilder {
             memory: None,
@@ -137,7 +135,6 @@ impl MachineBuilder {
             interrupts: None,
         }
     }
-
 
     pub fn build_with_defaults(self) -> X86Machine {
         let memory = self.memory.unwrap_or(ByteUnits::GibiBytes(1));
@@ -211,7 +208,7 @@ impl MachineBuilder {
             syscalls,
             interrupts,
         }
-            .build()
+        .build()
     }
 
     pub fn memory(mut self, memory: ByteUnits) -> Self {
@@ -236,6 +233,5 @@ fn empty_syscalls() -> SyscallVector {
 fn empty_interrupts() -> InterruptVector {
     InterruptVector([SystemFunction::default(); 255])
 }
-
 
 // 1024 should be enough

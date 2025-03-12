@@ -1,4 +1,4 @@
-#![allow(unused,dead_code)]
+#![allow(unused, dead_code)]
 //todo remove global allow after initial development
 
 /// Intrinsics module
@@ -19,10 +19,6 @@ pub(crate) mod types {
     pub use lib::x86::X86Machine;
 }
 
-
 pub(crate) mod private {
     pub trait Sealed {}
 }
-
-
-

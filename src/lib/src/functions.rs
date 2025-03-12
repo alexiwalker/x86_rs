@@ -1,5 +1,5 @@
-use std::ops::Deref;
 use crate::prelude::X86Machine;
+use std::ops::Deref;
 
 pub type IntrinsicPtr = fn(&mut X86Machine) -> ();
 
@@ -9,7 +9,6 @@ pub type IntrinsicPtr = fn(&mut X86Machine) -> ();
 pub struct Intrinsic(pub fn(&mut X86Machine) -> ());
 
 impl Intrinsic {
-
     #[inline(always)]
     pub fn from_ptr(f: fn(&mut X86Machine)) -> Intrinsic {
         Intrinsic(f)
@@ -41,7 +40,7 @@ pub enum SystemFunction {
 }
 
 impl SystemFunction {
-    pub fn call(&self, machine: &mut X86Machine)  {
+    pub fn call(&self, machine: &mut X86Machine) {
         match self {
             SystemFunction::Unimplemented => {}
             SystemFunction::IntrinsicFunction(ptr) => {

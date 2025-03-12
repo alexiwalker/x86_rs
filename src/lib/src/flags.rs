@@ -219,8 +219,6 @@ pub enum RFlags {
     Reserved_43 = 1 << 63,
 }
 
-
-
 pub trait AsRFlags {
     fn set(&mut self, flag: RFlags);
 

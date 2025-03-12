@@ -1,4 +1,4 @@
-#![allow(unused,dead_code)]
+#![allow(unused, dead_code)]
 //todo remove global allow after initial development
 
 use std::fmt;
