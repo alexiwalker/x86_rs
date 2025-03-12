@@ -1,7 +1,9 @@
 use std::ops::Range;
 use crate::registers::RegisterWidth;
 
-pub enum RegisterAlias {
+
+#[allow(unused)]
+enum RegisterAlias {
     RAX,
     RCX,
     RBX,
@@ -52,8 +54,8 @@ pub enum RegisterAlias {
 }
 
 pub struct Alias {
-    pub offset: u8,
-    pub width: u8,
+    pub offset: u16,
+    pub width: u16,
 }
 
 impl Alias {
@@ -65,48 +67,48 @@ impl Alias {
 
 impl RegisterAlias {
 
-    pub fn describe(&self) -> &'static Alias {
-         const a: Alias = Alias {
-             offset:0,
-             width: 0,
-         };
-
-        &a
-
-        // match self {
-        //     RegisterAlias::RAX => {}
-        //     RegisterAlias::RCX => {}
-        //     RegisterAlias::RBX => {}
-        //     RegisterAlias::RDX => {}
-        //     RegisterAlias::RSP => {}
-        //     RegisterAlias::RBP => {}
-        //     RegisterAlias::RSI => {}
-        //     RegisterAlias::RDI => {}
-        //     RegisterAlias::EAX => {}
-        //     RegisterAlias::ECX => {}
-        //     RegisterAlias::EBX => {}
-        //     RegisterAlias::EDX => {}
-        //     RegisterAlias::ESP => {}
-        //     RegisterAlias::EBP => {}
-        //     RegisterAlias::ESI => {}
-        //     RegisterAlias::EDI => {}
-        //     RegisterAlias::AX => {}
-        //     RegisterAlias::CX => {}
-        //     RegisterAlias::BX => {}
-        //     RegisterAlias::DX => {}
-        //     RegisterAlias::SP => {}
-        //     RegisterAlias::BP => {}
-        //     RegisterAlias::SI => {}
-        //     RegisterAlias::DI => {}
-        //     RegisterAlias::AL => {}
-        //     RegisterAlias::CL => {}
-        //     RegisterAlias::BL => {}
-        //     RegisterAlias::DL => {}
-        //     RegisterAlias::SPL => {}
-        //     RegisterAlias::BPL => {}
-        //     RegisterAlias::SIL => {}
-        //     RegisterAlias::DIL => {}
-        // }
-    }
+    // pub fn describe(&self) -> &'static Alias {
+    //     //  const a: Alias = Alias {
+    //     //      offset:0,
+    //     //      width: 0,
+    //     //  };
+    //     //
+    //     // &a
+    //
+    //     // match self {
+    //     //     RegisterAlias::RAX => {}
+    //     //     RegisterAlias::RCX => {}
+    //     //     RegisterAlias::RBX => {}
+    //     //     RegisterAlias::RDX => {}
+    //     //     RegisterAlias::RSP => {}
+    //     //     RegisterAlias::RBP => {}
+    //     //     RegisterAlias::RSI => {}
+    //     //     RegisterAlias::RDI => {}
+    //     //     RegisterAlias::EAX => {}
+    //     //     RegisterAlias::ECX => {}
+    //     //     RegisterAlias::EBX => {}
+    //     //     RegisterAlias::EDX => {}
+    //     //     RegisterAlias::ESP => {}
+    //     //     RegisterAlias::EBP => {}
+    //     //     RegisterAlias::ESI => {}
+    //     //     RegisterAlias::EDI => {}
+    //     //     RegisterAlias::AX => {}
+    //     //     RegisterAlias::CX => {}
+    //     //     RegisterAlias::BX => {}
+    //     //     RegisterAlias::DX => {}
+    //     //     RegisterAlias::SP => {}
+    //     //     RegisterAlias::BP => {}
+    //     //     RegisterAlias::SI => {}
+    //     //     RegisterAlias::DI => {}
+    //     //     RegisterAlias::AL => {}
+    //     //     RegisterAlias::CL => {}
+    //     //     RegisterAlias::BL => {}
+    //     //     RegisterAlias::DL => {}
+    //     //     RegisterAlias::SPL => {}
+    //     //     RegisterAlias::BPL => {}
+    //     //     RegisterAlias::SIL => {}
+    //     //     RegisterAlias::DIL => {}
+    //     // }
+    // }
 
 }

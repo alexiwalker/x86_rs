@@ -78,7 +78,7 @@ mod intrinsics {
 
         let intrinsic = Intrinsic::from_ptr(test_intrinsic);
 
-        test_intrinsic(&mut machine);
+        intrinsic(&mut machine);
 
     }
 
@@ -88,7 +88,6 @@ mod intrinsics {
 
 #[cfg(test)]
 mod memory {
-    use std::fs;
     use lib::memory::ContiguousMemory;
     use lib_types::memory::ByteUnits;
 
@@ -262,6 +261,16 @@ mod registers {
         width:16,
         offset:7, //offset of 1x16 bit register, meaning we start at the 17th bit
     };
+
+    const ALIAS_32_BIT_1:Alias = Alias {
+        width:32,
+        offset:0, //offset of 1x16 bit register, meaning we start at the 17th bit
+    };
+
+    const ALIAS_32_BIT_2:Alias = Alias {
+        width:32,
+        offset:7, //offset of 1x16 bit register, meaning we start at the 17th bit
+    };
     #[test]
     fn test_8x8_registers(){
         /* 8 x 8 bit registers*/
@@ -338,7 +347,6 @@ mod registers {
 
         #[cfg(not(feature = "safety_checks"))]
         {
-            let bytes = read_first.to_le_bytes().to_vec();
             assert_eq!(read_first, TEST_NUM);
         }
 
@@ -346,9 +354,51 @@ mod registers {
             assert!(read_first.is_ok());
             let read_first = read_first.unwrap();
             assert_eq!(read_first, TEST_NUM);
+        }
+
+
+    }
+
+
+
+    #[test]
+    fn test_8x32_registers(){
+        /* 8 x 16 bit registers*/
+        let mut register = Registers::<{( 8 * 32 ) / 8 }>::new(
+            RegisterWidth::Fixed(32)
+        );
+        let s = register.dump_hex();
+
+        println!("{s}");
+
+        register.write_u32( ALIAS_32_BIT_1, u32::MAX ).unwrap();
+
+
+        const TEST_VAL_2:u32 = u32::MAX-12121;
+
+        register.write_u32(ALIAS_32_BIT_2, TEST_VAL_2).unwrap();
+
+
+        let s_after = register.dump_hex();
+
+        println!("{s_after}");
+
+        let read_first = register.read_u32(ALIAS_32_BIT_1);
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            let bytes = read_first.to_le_bytes().to_vec();
+            dbg!(&bytes);
+            assert_eq!(read_first, u32::MAX);
+        }
+
+        #[cfg(feature = "safety_checks")] {
+            assert!(read_first.is_ok());
+            let read_first = read_first.unwrap();
+            assert_eq!(read_first, u32::MAX);
 
         }
 
 
     }
+
 }
