@@ -86,7 +86,7 @@ impl<const N: usize>  Registers<N> {
         }
 
         let i = offset as usize;
-        let mut mem = &mut self.0;
+        let mem = &mut self.0;
         mem[i] = val;
 
         Ok(())
@@ -99,7 +99,7 @@ impl<const N: usize>  Registers<N> {
             self.safety_check(&alias)?
         }
 
-        let mut mem: &mut [u8] = self.0.as_mut_slice();
+        let mem: &mut [u8] = self.0.as_mut_slice();
         mem[alias.range()].copy_from_slice(&val.to_le_bytes());
         Ok(())
 
@@ -113,7 +113,7 @@ impl<const N: usize>  Registers<N> {
         }
 
 
-        let mut mem: &mut [u8] = self.0.as_mut_slice();
+        let mem: &mut [u8] = self.0.as_mut_slice();
         mem[alias.range()].copy_from_slice(&val.to_le_bytes());
         Ok(())
 

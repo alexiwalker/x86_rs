@@ -120,6 +120,8 @@ impl MachineOptions {
     }
 }
 
+
+#[derive(Default)]
 pub struct MachineBuilder {
     pub memory: Option<ByteUnits>,
     pub syscalls: Option<SyscallVector>,
@@ -204,15 +206,12 @@ impl MachineBuilder {
         let memory = self.memory.unwrap_or(ByteUnits::GibiBytes(1));
         let syscalls = self.syscalls.unwrap_or(empty_syscalls());
         let interrupts = self.interrupts.unwrap_or(empty_interrupts());
-
-        let machine = MachineOptions {
+        MachineOptions {
             memory,
             syscalls,
             interrupts,
         }
-        .build();
-
-        machine
+            .build()
     }
 
     pub fn memory(mut self, memory: ByteUnits) -> Self {

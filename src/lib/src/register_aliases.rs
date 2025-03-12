@@ -2,7 +2,7 @@ use std::ops::Range;
 use crate::registers::RegisterWidth;
 
 
-#[allow(unused)]
+#[allow(unused, clippy::upper_case_acronyms)]
 enum RegisterAlias {
     RAX,
     RCX,

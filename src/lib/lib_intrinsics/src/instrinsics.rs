@@ -1,3 +1,5 @@
+#![allow(unused,dead_code)]
+//todo remove global allow after initial development
 
 /// Intrinsics module
 ///
@@ -7,8 +9,6 @@
 /// It depends on the types provided in the main lib, and the machine needs to know how to call the
 /// intrinsics in the X86Machine impl, so we cannot define those types here
 ///
-
-
 // local reexports to make the names easier
 pub(crate) mod types {
     pub use lib::functions::InterruptVector;

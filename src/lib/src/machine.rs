@@ -1,3 +1,6 @@
+#![allow(unused,dead_code)]
+//todo remove global allow after initial development
+
 mod tests;
 pub mod x86;
 pub mod flags;

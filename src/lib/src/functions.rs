@@ -41,7 +41,7 @@ pub enum SystemFunction {
 }
 
 impl SystemFunction {
-    pub fn call(&self, machine: &mut X86Machine) -> () {
+    pub fn call(&self, machine: &mut X86Machine)  {
         match self {
             SystemFunction::Unimplemented => {}
             SystemFunction::IntrinsicFunction(ptr) => {
