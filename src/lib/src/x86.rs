@@ -146,7 +146,7 @@ impl MachineBuilder {
             syscalls,
             interrupts,
         }
-        .build()
+            .build()
     }
 
     /// Initialises the build options. Panics if any fields aren't set. Ensure they are set by
@@ -157,7 +157,7 @@ impl MachineBuilder {
             syscalls: self.syscalls.unwrap(),
             interrupts: self.interrupts.unwrap(),
         }
-        .build()
+            .build()
     }
 
     pub fn try_build(self) -> Result<X86Machine, VmBuildError> {
@@ -195,7 +195,7 @@ impl MachineBuilder {
                 syscalls,
                 interrupts,
             }
-            .build())
+                .build())
         }
     }
 
@@ -208,7 +208,7 @@ impl MachineBuilder {
             syscalls,
             interrupts,
         }
-        .build()
+            .build()
     }
 
     pub fn memory(mut self, memory: ByteUnits) -> Self {

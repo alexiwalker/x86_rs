@@ -1,7 +1,6 @@
 use crate::register_aliases::Alias;
 use lib_types::error::{SafetyResult, VmRuntimeError};
 use std::fmt;
-use std::io::Read;
 use std::ops::Deref;
 
 pub type RegisterAliasingWidth = u16;

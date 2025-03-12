@@ -56,7 +56,6 @@ mod machine {
 
 #[cfg(test)]
 mod intrinsics {
-
     fn test_intrinsic(machine: &mut X86Machine) -> () {
         println!(
             "test_intrinsic. machine has bytes: {}",

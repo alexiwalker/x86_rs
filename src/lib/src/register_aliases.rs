@@ -1,4 +1,3 @@
-use crate::registers::RegisterWidth;
 use std::ops::Range;
 
 #[allow(unused, clippy::upper_case_acronyms)]

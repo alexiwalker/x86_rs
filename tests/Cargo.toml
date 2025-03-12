@@ -10,8 +10,8 @@ path = "src/tests.rs"
 [dependencies]
 
 # project crates
-lib = {workspace = true}
-lib_types = {workspace = true}
+lib = { workspace = true }
+lib_types = { workspace = true }
 
 
 # 3rd party dependencies for testing
@@ -20,4 +20,4 @@ rand = "0.9.0"
 
 [features]
 default = []
-safety_checks = ["lib/safety_checks","lib_types/safety_checks"]
+safety_checks = ["lib/safety_checks", "lib_types/safety_checks"]

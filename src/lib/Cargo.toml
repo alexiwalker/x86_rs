@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-lib_types = {workspace = true}
-lib_utils = {workspace = true}
+lib_types = { workspace = true }
+lib_utils = { workspace = true }
 
 
 [lib]
