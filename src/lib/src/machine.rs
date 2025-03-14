@@ -7,8 +7,8 @@ pub mod hardware;
 pub mod memory;
 pub mod register_aliases;
 pub mod registers;
-mod tests;
 pub mod x86;
+pub mod builders;
 
 pub mod prelude {
     pub use crate::flags::*;

@@ -42,6 +42,7 @@ mod flags {
 
 #[cfg(test)]
 mod machine {
+    use lib::builders::MachineOptions;
     use lib::prelude::*;
 
     #[test]
@@ -259,7 +260,7 @@ mod registers {
 
         let _ = register.write_u8(ALIAS_8_BIT, 255);
 
-        let v = register.read_u8(ALIAS_8_BIT);
+        let v = register.read_u8(&ALIAS_8_BIT);
 
         #[cfg(feature = "safety_checks")]
         {
@@ -288,7 +289,7 @@ mod registers {
 
         println!("{s_after}");
 
-        let read_first = register.read_u16(ALIAS_16_BIT_1);
+        let read_first = register.read_u16(&ALIAS_16_BIT_1);
         #[cfg(not(feature = "safety_checks"))]
         {
             let bytes = read_first.to_le_bytes().to_vec();
@@ -313,7 +314,7 @@ mod registers {
 
         let _ = register.write_u16(ALIAS_16_BIT_1, TEST_NUM);
 
-        let read_first = register.read_u16(ALIAS_16_BIT_1);
+        let read_first = register.read_u16(&ALIAS_16_BIT_1);
 
         #[cfg(not(feature = "safety_checks"))]
         {
@@ -346,7 +347,7 @@ mod registers {
 
         println!("{s_after}");
 
-        let read_first = register.read_u32(ALIAS_32_BIT_1);
+        let read_first = register.read_u32(&ALIAS_32_BIT_1);
         #[cfg(not(feature = "safety_checks"))]
         {
             let bytes = read_first.to_le_bytes().to_vec();
@@ -362,8 +363,6 @@ mod registers {
         }
     }
 
-
-
     #[test]
     #[should_panic]
     fn test_register_with_overflow_larger_write_panic() {
@@ -371,47 +370,44 @@ mod registers {
         let mut register = Registers::<{ (1 * 32) / 8 }>::new(RegisterWidth::Fixed(32));
         let _ = register.write_u32(ALIAS_32_BIT_1, u32::MAX);
 
-        const ALIAS_64_BIT: Alias  = Alias {
+        const ALIAS_64_BIT: Alias = Alias {
             offset: 0,
             width: 64,
         };
 
-        #[cfg(feature = "safety_checks")] {
+        #[cfg(feature = "safety_checks")]
+        {
             // safety: panics on unwrap only;
             // otherwise would return a result object
             register.write_u64(ALIAS_64_BIT, u64::MAX).unwrap();
             // register.write_u64(ALIAS_64_BIT, u64::MAX);
-
         }
 
-        #[cfg(not(feature = "safety_checks"))] {
+        #[cfg(not(feature = "safety_checks"))]
+        {
             // no safety: panics on write;
             // doesnt require unwrap
             register.write_u64(ALIAS_64_BIT, u64::MAX);
         }
     }
 
-
     #[test]
     fn test_register_with_overflow_larger_write_nopanic() {
         /* 8 x 16 bit registers*/
         let mut register = Registers::<{ (1 * 32) / 8 }>::new(RegisterWidth::Fixed(32));
 
-        const ALIAS_64_BIT: Alias  = Alias {
+        const ALIAS_64_BIT: Alias = Alias {
             width: 64,
             offset: 0,
         };
 
-        #[cfg(feature = "safety_checks")] {
-
+        #[cfg(feature = "safety_checks")]
+        {
             println!("here");
             let r = register.write_u64(ALIAS_64_BIT, u64::MAX);
 
             assert!(r.is_err());
-
-
         }
-
     }
 
     #[test]
@@ -419,30 +415,42 @@ mod registers {
     fn test_register_with_overflow_same_size_u8() {
         /* 8 x 16 bit registers*/
         let mut register = Registers::<{ (1 * 8) / 8 }>::new(RegisterWidth::Fixed(8));
-        let _ = register.write_u8(Alias {
-            offset: 0,
-            width: 1,
-        }, u8::MAX);
+        let _ = register.write_u8(
+            Alias {
+                offset: 0,
+                width: 1,
+            },
+            u8::MAX,
+        );
 
         const TEST_VAL_2: u8 = u8::MAX - 5;
 
-        #[cfg(feature = "safety_checks")] {
+        #[cfg(feature = "safety_checks")]
+        {
             // safety: panics on unwrap only;
             // otherwise would return a result object
-            register.write_u8(Alias {
-                offset: 1,
-                width: 1,
-            }, TEST_VAL_2).unwrap();
-
+            register
+                .write_u8(
+                    Alias {
+                        offset: 1,
+                        width: 1,
+                    },
+                    TEST_VAL_2,
+                )
+                .unwrap();
         }
 
-        #[cfg(not(feature = "safety_checks"))] {
+        #[cfg(not(feature = "safety_checks"))]
+        {
             // no safety: panics on write;
             // doesnt require unwrap
-            register.write_u8(Alias {
-                offset: 1,
-                width: 1,
-            }, TEST_VAL_2);
+            register.write_u8(
+                Alias {
+                    offset: 1,
+                    width: 1,
+                },
+                TEST_VAL_2,
+            );
         }
     }
 
@@ -451,30 +459,42 @@ mod registers {
     fn test_register_with_overflow_same_size_u16() {
         /* 8 x 16 bit registers*/
         let mut register = Registers::<{ (1 * 16) / 8 }>::new(RegisterWidth::Fixed(16));
-        let _ = register.write_u16(Alias {
-            width: 16,
-            offset: 0,
-        }, u16::MAX);
+        let _ = register.write_u16(
+            Alias {
+                width: 16,
+                offset: 0,
+            },
+            u16::MAX,
+        );
 
         const TEST_VAL_2: u16 = u16::MAX - 5;
 
-        #[cfg(feature = "safety_checks")] {
+        #[cfg(feature = "safety_checks")]
+        {
             // safety: panics on unwrap only;
             // otherwise would return a result object
-            register.write_u16(Alias {
-                width: 0,
-                offset: 1,
-            }, TEST_VAL_2).unwrap();
-
+            register
+                .write_u16(
+                    Alias {
+                        width: 0,
+                        offset: 1,
+                    },
+                    TEST_VAL_2,
+                )
+                .unwrap();
         }
 
-        #[cfg(not(feature = "safety_checks"))] {
+        #[cfg(not(feature = "safety_checks"))]
+        {
             // no safety: panics on write;
             // doesnt require unwrap
-            register.write_u16(Alias {
-                width: 0,
-                offset: 1,
-            }, TEST_VAL_2);
+            register.write_u16(
+                Alias {
+                    width: 0,
+                    offset: 1,
+                },
+                TEST_VAL_2,
+            );
         }
     }
 
@@ -483,30 +503,42 @@ mod registers {
     fn test_register_with_overflow_same_size_u32() {
         /* 8 x 16 bit registers*/
         let mut register = Registers::<{ (1 * 32) / 8 }>::new(RegisterWidth::Fixed(32));
-        let _ = register.write_u32(Alias {
-            width: 32,
-            offset: 0,
-        }, u32::MAX);
+        let _ = register.write_u32(
+            Alias {
+                width: 32,
+                offset: 0,
+            },
+            u32::MAX,
+        );
 
         const TEST_VAL_2: u32 = u32::MAX - 12121;
 
-        #[cfg(feature = "safety_checks")] {
+        #[cfg(feature = "safety_checks")]
+        {
             // safety: panics on unwrap only;
             // otherwise would return a result object
-            register.write_u32(Alias {
-                width: 32,
-                offset: 1,
-            }, TEST_VAL_2).unwrap();
-
+            register
+                .write_u32(
+                    Alias {
+                        width: 32,
+                        offset: 1,
+                    },
+                    TEST_VAL_2,
+                )
+                .unwrap();
         }
 
-        #[cfg(not(feature = "safety_checks"))] {
+        #[cfg(not(feature = "safety_checks"))]
+        {
             // no safety: panics on write;
             // doesnt require unwrap
-            register.write_u32(Alias {
-                width: 32,
-                offset: 1,
-            }, TEST_VAL_2);
+            register.write_u32(
+                Alias {
+                    width: 32,
+                    offset: 1,
+                },
+                TEST_VAL_2,
+            );
         }
     }
 
@@ -515,29 +547,106 @@ mod registers {
     fn test_register_with_overflow_same_size_u64() {
         /* 8 x 16 bit registers*/
         let mut register = Registers::<{ (1 * 64) / 8 }>::new(RegisterWidth::Fixed(64));
-        let _ = register.write_u64(Alias {
-            width: 64,
-            offset: 0,
-        }, u64::MAX);
+        let _ = register.write_u64(
+            Alias {
+                width: 64,
+                offset: 0,
+            },
+            u64::MAX,
+        );
 
         const TEST_VAL_2: u64 = u64::MAX - 12121;
 
-        #[cfg(feature = "safety_checks")] {
+        #[cfg(feature = "safety_checks")]
+        {
             // safety: panics on unwrap only;
             // otherwise would return a result object
-            register.write_u64(Alias {
-                width: 64,
-                offset: 1,
-            }, TEST_VAL_2).unwrap();
+            register
+                .write_u64(
+                    Alias {
+                        width: 64,
+                        offset: 1,
+                    },
+                    TEST_VAL_2,
+                )
+                .unwrap();
         }
 
-        #[cfg(not(feature = "safety_checks"))] {
+        #[cfg(not(feature = "safety_checks"))]
+        {
             // no safety: panics on write;
             // doesnt require unwrap
-            register.write_u64(Alias {
-                width: 64,
-                offset: 1,
-            }, TEST_VAL_2);
+            register.write_u64(
+                Alias {
+                    width: 64,
+                    offset: 1,
+                },
+                TEST_VAL_2,
+            );
         }
+    }
+}
+
+#[cfg(test)]
+mod stack {
+    use lib::builders::MachineOptions;
+    use lib::register_aliases::Alias;
+    use lib_types::memory::ByteUnits;
+
+    #[test]
+    fn write_bytes_to_stack() {
+
+        /*      setup machine and register        */
+
+        let mut machine = MachineOptions::builder()
+            .memory(ByteUnits::Bytes(512))
+            .build_machine();
+        const ALIAS: Alias = Alias {
+            width: 32,
+            offset: 0,
+        };
+
+        let value: u32 = 0xabcdef11;
+        machine.write_to_gp_registers(ALIAS, value.to_le_bytes().as_slice());
+
+
+        /*      first write to stack        */
+
+        machine.push_gp_register_to_stack(ALIAS);
+        let mem = machine.memory.dump_hex();
+        let hex = sanitise_mem_string(mem);
+        assert!(hex.ends_with("00 11 EF CD AB"));
+
+        /*      second write to stack - same size        */
+
+        machine.push_gp_register_to_stack(ALIAS);
+        let mem = machine.memory.dump_hex();
+        let hex = sanitise_mem_string(mem);
+        assert!(hex.ends_with("00 11 EF CD AB 11 EF CD AB"));
+
+        /*      third write to stack - same register values, using a smaller alias (16bit)        */
+
+
+        const ALIAS2: Alias = Alias {
+            width: 16,
+            offset: 0, //offset of 1x16 bit register, meaning we start at the 17th bit
+        };
+
+        machine.push_gp_register_to_stack(ALIAS2);
+
+        let mem = machine.memory.dump_hex();
+        let hex = sanitise_mem_string(mem);
+        assert!(hex.ends_with("00 11 EF 11 EF CD AB 11 EF CD AB"))
+    }
+
+
+    fn sanitise_mem_string(string:String) -> String {
+        let mem_string = string
+            .replace("[", "")
+            .replace("]","")
+            .replace("\n", "");
+        let mem_string = mem_string.trim();
+
+        mem_string.to_string()
     }
 }

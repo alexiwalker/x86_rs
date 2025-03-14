@@ -50,7 +50,6 @@ impl<const N: usize> Registers<N> {
         }
 
         let cannonical_width = &self.1;
-
         match cannonical_width {
             RegisterWidth::Fixed(w) => {
                 if *w < alias.width {
@@ -169,11 +168,33 @@ impl<const N: usize> Registers<N> {
         }
     }
 
+
+
+    pub fn write_bytes(&mut self, alias: Alias, val: &[u8]) -> SafetyResult<()>{
+        #[cfg(feature = "safety_checks")]
+        {
+            self.safety_check(&alias)?;
+            //todo safety check: overflow
+        }
+
+        let mem: &mut [u8] = self.0.as_mut_slice();
+        mem[alias.range()].copy_from_slice(val);
+
+        #[cfg(feature = "safety_checks")]
+        {
+            Ok(())
+        }
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            ()
+        }
+    }
+
     pub fn new(width: RegisterWidth) -> Self {
         Registers([0; N], width)
     }
 
-    pub fn read_u8(&self, alias: Alias) -> SafetyResult<u8> {
+    pub fn read_u8(&self, alias: &Alias) -> SafetyResult<u8> {
         let offset = alias.offset;
         let memory = self.0.as_slice();
 
@@ -228,7 +249,7 @@ impl<const N: usize> Registers<N> {
         memory[offset as usize]
     }
 
-    pub fn read_u16(&self, alias: Alias) -> SafetyResult<u16> {
+    pub fn read_u16(&self, alias: &Alias) -> SafetyResult<u16> {
         let memory = self.0.as_slice();
         let offset = alias.offset;
         #[cfg(feature = "safety_checks")]
@@ -278,7 +299,7 @@ impl<const N: usize> Registers<N> {
         }
     }
 
-    pub fn read_u32(&self, alias: Alias) -> SafetyResult<u32> {
+    pub fn read_u32(&self, alias: &Alias) -> SafetyResult<u32> {
         let memory = self.0.as_slice();
         let offset = alias.offset;
         #[cfg(feature = "safety_checks")]
@@ -328,13 +349,92 @@ impl<const N: usize> Registers<N> {
         }
     }
 
+
+
+    pub fn read_bytes(&self, alias: &Alias) -> SafetyResult<&[u8]> {
+        let memory = self.0.as_slice();
+        let offset = alias.offset;
+        #[cfg(feature = "safety_checks")]
+        {
+            self.safety_check(&alias)?;
+
+            let v = &memory.get(alias.range());
+
+            match v {
+                None => {
+                    return {
+                        match self.1 {
+                            RegisterWidth::Fixed(w) => Err(VmRuntimeError::RegisterAliasOverrun {
+                                offset: alias.offset,
+                                width: alias.width,
+                                alignment: w,
+                            }),
+                            RegisterWidth::Variable => Err(VmRuntimeError::RegisterAliasOverrun {
+                                offset: alias.offset,
+                                width: alias.width,
+                                alignment: 32,
+                            }),
+                        }
+                    };
+                }
+                Some(v) => {
+                    Ok(*v)
+                }
+            }
+        }
+
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            let bytes: &[u8] = &memory[alias.range()];
+            bytes
+        }
+    }
+    pub fn read_bytes_mut(&mut self, alias: Alias) -> SafetyResult<&[u8]> {
+        let memory = self.0.as_slice();
+        let offset = alias.offset;
+        #[cfg(feature = "safety_checks")]
+        {
+            self.safety_check(&alias)?;
+
+            let v = &memory.get(alias.range());
+
+            match v {
+                None => {
+                    return {
+                        match self.1 {
+                            RegisterWidth::Fixed(w) => Err(VmRuntimeError::RegisterAliasOverrun {
+                                offset: alias.offset,
+                                width: alias.width,
+                                alignment: w,
+                            }),
+                            RegisterWidth::Variable => Err(VmRuntimeError::RegisterAliasOverrun {
+                                offset: alias.offset,
+                                width: alias.width,
+                                alignment: 32,
+                            }),
+                        }
+                    };
+                }
+                Some(v) => {
+                    Ok(*v)
+                }
+            }
+        }
+
+        #[cfg(not(feature = "safety_checks"))]
+        {
+            let bytes: &[u8] = &memory[alias.range()];
+            bytes
+        }
+    }
+
     pub fn dump_hex(&self) -> String {
         lib_utils::dump_hex_unpadded(&self.0)
     }
 }
 impl<const N: usize> Default for Registers<N> {
     fn default() -> Self {
-        Registers([0; N], RegisterWidth::Fixed(16))
+        Registers([0; N], RegisterWidth::Fixed(64))
     }
 }
 

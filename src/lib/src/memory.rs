@@ -71,6 +71,25 @@ impl ContiguousMemory {
             Ok(())
         }
     }
+    pub fn write_rev(&mut self, addr: usize, data: &[u8]) -> Result<(), VmRuntimeError> {
+        let len = data.len();
+        let allocated_len = self.0.len();
+        let total = addr + len;
+
+        if total > allocated_len {
+            return Err(VmRuntimeError::OutOfBoundsError {
+                address: total as u64,
+            });
+        }
+
+        // Write bytes in reverse order
+        for (i, &byte) in data.iter().rev().enumerate() {
+            self.0[addr + i] = byte;
+        }
+
+        Ok(())
+    }
+
 
     pub fn read(&self, addr: usize, len: usize) -> Result<&[u8], VmRuntimeError> {
         let max = self.0.len();

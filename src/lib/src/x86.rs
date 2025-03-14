@@ -1,8 +1,12 @@
-use crate::functions::{InterruptVector, SyscallVector, SystemFunction};
+use std::ops::DerefMut;
+use crate::functions::{InterruptVector, SyscallVector};
 use crate::memory::{ContiguousMemory, Fpu};
 use crate::registers::Registers;
-use lib_types::error::{VmBuildError, VmRuntimeError};
+use lib_types::error::{SafetyResult, VmRuntimeError};
 use lib_types::memory::ByteUnits;
+use crate::builders::MachineBuilder;
+use crate::register_aliases::Alias;
+use crate::x86::dto::MemWriteDto;
 
 /// Represents a virtual x86_64 lib
 ///
@@ -40,11 +44,19 @@ pub struct X86Machine {
 
     pub assigned_memory: ByteUnits,
 
-    pub stack: ContiguousMemory,
+    // pub stack: ContiguousMemory,
     pub memory: ContiguousMemory,
 }
 
 impl X86Machine {
+
+    pub fn dump_register_hex(&self) -> String {
+        self.gp_registers.dump_hex()
+    }
+
+    pub fn write_to_gp_registers(&mut self, alias:Alias, bytes: &[u8]) {
+        let _ = self.gp_registers.write_bytes(alias, bytes);
+    }
     pub fn load_binary(&mut self, data: &[u8]) -> Result<(), VmRuntimeError> {
         let len = data.len() as u64;
         let assigned = self.assigned_memory.num_bytes();
@@ -65,173 +77,113 @@ impl X86Machine {
     pub fn set_instruction_counter(&mut self, ptr: u64) {
         self.instruction_counter = ptr;
     }
-}
-
-/// An initialised set of X86Machine constructor options
-///
-pub struct MachineOptions {
-    pub memory: ByteUnits,
-    pub syscalls: SyscallVector,
-    pub interrupts: InterruptVector,
-}
-
-impl MachineOptions {
-    pub fn builder() -> MachineBuilder {
-        MachineBuilder {
-            memory: None,
-            syscalls: None,
-            interrupts: None,
-        }
+    
+    fn read_register_bytes<'a>(&self, alias:&Alias) -> SafetyResult<&[u8]> {
+        self.gp_registers.read_bytes(&alias)
     }
 
-    pub fn memory(mut self, memory: ByteUnits) -> Self {
-        self.memory = memory;
-        self
-    }
-    pub fn syscalls(mut self, syscalls: SyscallVector) -> Self {
-        self.syscalls = syscalls;
-        self
-    }
+    pub fn push_gp_register_to_stack(&mut self, register: Alias) -> () /* modifying in place for most ops*/ {
 
-    pub fn interrupts(mut self, interrupts: InterruptVector) -> Self {
-        self.interrupts = interrupts;
-        self
-    }
+        let regs = &self.gp_registers;
 
-    pub fn build(self) -> X86Machine {
-        X86Machine {
-            mmx_registers: Default::default(),
-            segment_pointers: Default::default(),
-            gp_registers: Default::default(),
-            xmm_registers: Default::default(),
-            ymm_registers: Default::default(),
-            bounds_registers: Default::default(),
-            mxcsr_register: Default::default(),
-            fpu: Default::default(),
-            flags: 0,
-            instruction_counter: 0,
-            stack_pointer: 0,
-            interrupts: self.interrupts,
-            syscalls: self.syscalls,
-            stack: ContiguousMemory::with_size(&ByteUnits::GibiBytes(1)),
-            memory: ContiguousMemory::with_size(&self.memory),
-            assigned_memory: self.memory,
-        }
-    }
-}
+        let stack_mem = &mut self.memory;
 
-#[derive(Default)]
-pub struct MachineBuilder {
-    pub memory: Option<ByteUnits>,
-    pub syscalls: Option<SyscallVector>,
-    pub interrupts: Option<InterruptVector>,
-}
+        let ptr = &mut self.stack_pointer;
 
-impl MachineBuilder {
-    pub fn new() -> MachineBuilder {
-        MachineBuilder {
-            memory: None,
-            syscalls: None,
-            interrupts: None,
-        }
-    }
-
-    pub fn build_with_defaults(self) -> X86Machine {
-        let memory = self.memory.unwrap_or(ByteUnits::GibiBytes(1));
-        let syscalls = self.syscalls.unwrap_or(empty_syscalls());
-        let interrupts = self.interrupts.unwrap_or(empty_interrupts());
-
-        MachineOptions {
-            memory,
-            syscalls,
-            interrupts,
-        }
-            .build()
-    }
-
-    /// Initialises the build options. Panics if any fields aren't set. Ensure they are set by
-    /// creating the options with new_with_defaults(), or call build_options_with_defaults() instead
-    pub fn build(self) -> X86Machine {
-        MachineOptions {
-            memory: self.memory.unwrap(),
-            syscalls: self.syscalls.unwrap(),
-            interrupts: self.interrupts.unwrap(),
-        }
-            .build()
-    }
-
-    pub fn try_build(self) -> Result<X86Machine, VmBuildError> {
-        let mut error = VmBuildError {
-            missing_memory: false,
-            missing_registers: false,
-            missing_interrupts: false,
+        let dto = MemWriteDto {
+            mem: stack_mem,
+            register: regs,
+            s_ptr: ptr,
         };
-        let mut e = false;
 
-        if self.memory.is_none() {
-            e = true;
-            error.missing_memory = true;
+        Self::write_bytes_to_stack_memory(dto,&register);
+        // let bytes = self.read_register_bytes(register);
+        // self.write_bytes_to_stack(bytes);
+    }
+    //
+    // pub fn push_gp_register_to_stack(&mut self, register:Alias) -> () /* modifying in place for most ops*/ {
+    //     let mut bytes = { self.read_register_bytes(register) };
+    //
+    //     dbg!(&bytes);
+    //     #[cfg(feature = "safety_checks")]
+    //     {
+    //
+    //         self
+    //             .write_bytes_to_stack(
+    //                 bytes.unwrap()
+    //             );
+    //     }
+    //     #[cfg(not(feature = "safety_checks"))]
+    //     {
+    //         self.write_bytes_to_stack(bytes);
+    //
+    //     }
+    //
+    //     ()
+    // }
+
+    pub fn write_bytes_to_stack(&mut self, bytes: &[u8]) -> SafetyResult<()> {
+        //todo errors later
+
+        let sp = self.stack_pointer as usize;
+        let l = bytes.len();
+
+        // sp starts at max and counts down, so eg if sp is 999,999 and we write 4 bytes
+        //we go down to ...999, 9998, 9997, 9996
+
+        let invert_start = sp-l;
+        self.memory.write(invert_start,bytes);
+
+
+        #[cfg(feature = "safety_checks")]
+        {
+            Ok(())
         }
 
-        if self.syscalls.is_none() {
-            e = true;
-            error.missing_registers = true;
+        #[cfg(not(feature = "safety_checks"))] {
+
+            ()
         }
 
-        if self.interrupts.is_none() {
-            e = true;
-            error.missing_interrupts = true;
-        }
-
-        let memory = self.memory.unwrap();
-        let syscalls = self.syscalls.unwrap();
-        let interrupts = self.interrupts.unwrap();
-
-        if e {
-            Err(error)
-        } else {
-            Ok(MachineOptions {
-                memory,
-                syscalls,
-                interrupts,
-            }
-                .build())
-        }
     }
 
-    pub fn build_machine(self) -> X86Machine {
-        let memory = self.memory.unwrap_or(ByteUnits::GibiBytes(1));
-        let syscalls = self.syscalls.unwrap_or(empty_syscalls());
-        let interrupts = self.interrupts.unwrap_or(empty_interrupts());
-        MachineOptions {
-            memory,
-            syscalls,
-            interrupts,
+
+    pub fn write_bytes_to_stack_memory<const N : usize> (d: MemWriteDto<N>, alias:&Alias) -> SafetyResult<()> {
+
+        let mem = d.mem;
+        let register = d.register;
+        let mut ptr = d.s_ptr;
+
+        let bytes = register.read_bytes(&alias);
+
+
+        #[cfg(feature = "safety_checks")]
+            let bytes = bytes.unwrap();
+
+
+        let l = bytes.len() as u64;
+
+        let invert_start = *ptr-l;
+        mem.write(invert_start as usize,bytes);
+
+        *ptr -= l;
+
+
+        #[cfg(feature = "safety_checks")] {
+            Ok(())
         }
-            .build()
-    }
 
-    pub fn memory(mut self, memory: ByteUnits) -> Self {
-        self.memory = Some(memory);
-        self
-    }
-    pub fn syscalls(mut self, syscalls: SyscallVector) -> Self {
-        self.syscalls = Some(syscalls);
-        self
-    }
-
-    pub fn interrupts(mut self, interrupts: InterruptVector) -> Self {
-        self.interrupts = Some(interrupts);
-        self
     }
 }
 
-fn empty_syscalls() -> SyscallVector {
-    SyscallVector([SystemFunction::default(); 1024])
-}
 
-fn empty_interrupts() -> InterruptVector {
-    InterruptVector([SystemFunction::default(); 255])
-}
+mod dto {
+    use crate::memory::ContiguousMemory;
+    use crate::registers::Registers;
 
-// 1024 should be enough
+    pub struct MemWriteDto<'a,const N: usize > {
+        pub mem: &'a mut ContiguousMemory,
+        pub register: &'a Registers<N>,
+        pub s_ptr:&'a mut u64,
+    }
+}

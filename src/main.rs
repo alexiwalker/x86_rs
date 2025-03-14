@@ -1,4 +1,4 @@
-use lib::prelude::MachineOptions;
+use lib::builders::MachineOptions;
 use lib::types::memory::ByteUnits;
 
 fn main() {
