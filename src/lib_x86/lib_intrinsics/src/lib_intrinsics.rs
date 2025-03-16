@@ -11,12 +11,12 @@
 ///
 // local reexports to make the names easier
 pub(crate) mod types {
-    pub use lib::functions::InterruptVector;
-    pub use lib::functions::Intrinsic;
-    pub use lib::functions::IntrinsicPtr;
-    pub use lib::functions::SyscallVector;
-    pub use lib::functions::SystemFunction;
-    pub use lib::x86::X86Machine;
+    pub use lib_x86::functions::InterruptVector;
+    pub use lib_x86::functions::Intrinsic;
+    pub use lib_x86::functions::IntrinsicPtr;
+    pub use lib_x86::functions::SyscallVector;
+    pub use lib_x86::functions::SystemFunction;
+    pub use lib_x86::x86::X86Machine;
 }
 
 pub(crate) mod private {

@@ -5,6 +5,6 @@ echo "----------------------------------------------------------------"
 cargo test --features safety_checks --workspace
 
 
-echo "--------------- RUNNING TESTS WITHOUT SAFETY CHECKS ---------------"
-echo "-------------------------------------------------------------------"
+echo "--------------- RUNNING TESTS WITHOUT SAFETY CHECKS ------------"
+echo "----------------------------------------------------------------"
 cargo test --workspace

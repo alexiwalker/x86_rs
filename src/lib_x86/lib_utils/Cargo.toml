@@ -1,12 +1,14 @@
 [package]
-name = "lib_types"
+name = "lib_utils"
 version = "0.1.0"
 edition = "2024"
 
+
 [lib]
-path = "src/types.rs"
+path = "src/lib_utils.rs"
 
 [dependencies]
+
 
 [features]
 default = []

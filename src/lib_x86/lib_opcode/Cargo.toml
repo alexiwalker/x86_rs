@@ -1,0 +1,11 @@
+[package]
+name = "lib_opcode"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+
+
+[lib]
+path = "src/lib_opcode.rs"

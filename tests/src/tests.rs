@@ -11,7 +11,7 @@ mod tests {
 
 #[cfg(test)]
 mod flags {
-    use lib::flags::*;
+    use lib_x86::flags::*;
 
     #[test]
     fn set_flags() {
@@ -42,8 +42,8 @@ mod flags {
 
 #[cfg(test)]
 mod machine {
-    use lib::builders::MachineOptions;
-    use lib::prelude::*;
+    use lib_x86::builders::MachineOptions;
+    use lib_x86::prelude::*;
 
     #[test]
     fn machine_builder_works() {
@@ -59,15 +59,15 @@ mod machine {
 
 #[cfg(test)]
 mod intrinsics {
+    use lib_x86::functions::Intrinsic;
+    use lib_x86::prelude::{ByteUnits, X86Machine};
+
     fn test_intrinsic(machine: &mut X86Machine) -> () {
         println!(
             "test_intrinsic. machine has bytes: {}",
             machine.assigned_memory.num_bytes()
         );
     }
-
-    use lib::functions::Intrinsic;
-    use lib::prelude::{ByteUnits, X86Machine};
 
     #[test]
     fn can_convert_function() {
@@ -83,7 +83,7 @@ mod intrinsics {
 
 #[cfg(test)]
 mod memory {
-    use lib::memory::ContiguousMemory;
+    use lib_x86::memory::ContiguousMemory;
     use lib_types::memory::ByteUnits;
 
     const DEFAULT_BYTE_SIZE: ByteUnits = ByteUnits::MebiBytes(1);
@@ -226,8 +226,8 @@ mod memory {
 
 #[cfg(test)]
 mod registers {
-    use lib::register_aliases::Alias;
-    use lib::registers::*;
+    use lib_x86::register_aliases::Alias;
+    use lib_x86::registers::*;
 
     const ALIAS_8_BIT: Alias = Alias {
         width: 8,
@@ -589,14 +589,14 @@ mod registers {
 
 #[cfg(test)]
 mod stack {
-    use lib::builders::MachineOptions;
-    use lib::register_aliases::Alias;
+    use lib_x86::builders::MachineOptions;
+    use lib_x86::register_aliases::Alias;
     use lib_types::memory::ByteUnits;
 
     #[test]
     fn write_bytes_to_stack() {
 
-        /*      setup machine and register        */
+        /*        setup machine and register        */
 
         let mut machine = MachineOptions::builder()
             .memory(ByteUnits::Bytes(512))
@@ -610,22 +610,22 @@ mod stack {
         machine.write_to_gp_registers(ALIAS, value.to_le_bytes().as_slice());
 
 
-        /*      first write to stack        */
+        /*        first write to stack        */
 
         machine.push_gp_register_to_stack(ALIAS);
         let mem = machine.memory.dump_hex();
         let hex = sanitise_mem_string(mem);
         assert!(hex.ends_with("00 11 EF CD AB"));
 
-        /*      second write to stack - same size        */
+        /*        second write to stack - same size        */
 
         machine.push_gp_register_to_stack(ALIAS);
         let mem = machine.memory.dump_hex();
         let hex = sanitise_mem_string(mem);
         assert!(hex.ends_with("00 11 EF CD AB 11 EF CD AB"));
 
-        /*      third write to stack - same register values, using a smaller alias (16bit)        */
-
+        /*        third write to stack - same register values, using a smaller alias (16bit)          */
+        /*        checks that we are able to work with multiple widths at once and not overlap        */
 
         const ALIAS2: Alias = Alias {
             width: 16,
@@ -640,6 +640,9 @@ mod stack {
     }
 
 
+    /// turn the hex dump string (for visual debugging) to a form that easier to check
+    /// for start/end matches for tests
+    /// doesnt need to be fast/efficient, as it shouldnt be used in prod anywhere
     fn sanitise_mem_string(string:String) -> String {
         let mem_string = string
             .replace("[", "")

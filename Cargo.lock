@@ -27,19 +27,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "lib"
-version = "0.1.0"
-dependencies = [
- "lib_types",
- "lib_utils",
-]
-
-[[package]]
 name = "lib_intrinsics"
 version = "0.1.0"
 dependencies = [
- "lib",
+ "lib_x86",
 ]
+
+[[package]]
+name = "lib_opcode"
+version = "0.1.0"
 
 [[package]]
 name = "lib_types"
@@ -48,6 +44,14 @@ version = "0.1.0"
 [[package]]
 name = "lib_utils"
 version = "0.1.0"
+
+[[package]]
+name = "lib_x86"
+version = "0.1.0"
+dependencies = [
+ "lib_types",
+ "lib_utils",
+]
 
 [[package]]
 name = "libc"
@@ -127,8 +131,8 @@ dependencies = [
 name = "tests"
 version = "0.1.0"
 dependencies = [
- "lib",
  "lib_types",
+ "lib_x86",
  "rand",
 ]
 
@@ -224,7 +228,7 @@ dependencies = [
 name = "x86_rs"
 version = "0.1.0"
 dependencies = [
- "lib",
+ "lib_x86",
 ]
 
 [[package]]

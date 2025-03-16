@@ -1,5 +1,5 @@
-use lib::builders::MachineOptions;
-use lib::types::memory::ByteUnits;
+use lib_x86::builders::MachineOptions;
+use lib_x86::types::memory::ByteUnits;
 
 fn main() {
     let mut machine = MachineOptions::builder()

@@ -14,7 +14,6 @@ pub enum RegisterWidth {
 }
 
 #[derive(Clone)]
-
 pub struct Registers<const N: usize>(pub(crate) [u8; N], RegisterWidth);
 
 impl<const N: usize> Registers<N> {
@@ -434,7 +433,7 @@ impl<const N: usize> Registers<N> {
 }
 impl<const N: usize> Default for Registers<N> {
     fn default() -> Self {
-        Registers([0; N], RegisterWidth::Fixed(64))
+        Registers([0; N], RegisterWidth::Fixed(64)) /* default width for 64bit machine is 64... obviously*/
     }
 }
 

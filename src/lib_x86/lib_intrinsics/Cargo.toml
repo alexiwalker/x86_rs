@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [lib]
-path = "./src/instrinsics.rs"
+path = "src/lib_intrinsics.rs"
 
 [dependencies]
-lib = { workspace = true, version = "0.1.0" }
+lib_x86 = { workspace = true }
 
 [features]
 default = []

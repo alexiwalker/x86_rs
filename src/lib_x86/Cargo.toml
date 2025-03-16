@@ -1,5 +1,5 @@
 [package]
-name = "lib"
+name = "lib_x86"
 version = "0.1.0"
 edition = "2024"
 
@@ -9,7 +9,7 @@ lib_utils = { workspace = true }
 
 
 [lib]
-path = "src/machine.rs"
+path = "src/lib_x86.rs"
 
 
 [features]
